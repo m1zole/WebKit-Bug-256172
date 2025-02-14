@@ -8,5 +8,4 @@ function send(data) {
 
 function log(msg) {
 	send(msg === undefined ? 'undefined' : msg.toString());
-	document.getElementById("log").innerHTML += ""+msg+"</br>";
 }
